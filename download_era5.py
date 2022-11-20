@@ -1,16 +1,18 @@
 import numpy as np
 import pandas as pd
+import os
+
 # download stations data
-data = pd.read_csv("data/stations.csv")   
+data = pd.read_csv("data/stations_new.csv")   
 stations = pd.DataFrame(data)
 
+pc_filestart = "DataSetExport-PC.Working@"
+sd_filestart = "DataSetExport-SD.Working@"
 
 # for each station
-for station in stations.iterrows():
-    print(station)
+for i, station in stations.iterrows():
+    if station['Downloaded']: # do for each usable station
+        print(i)
+        # download era5 data w/ appropriate variables at appropriate time and location 
 
-    # download its data
-
-    # put its start and endtime in stations data
-    # download era5 data w/ appropriate variables at appropriate time and location 
-    # save era5 data as csv
+        # save era5 data as csv.
