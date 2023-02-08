@@ -8,7 +8,7 @@ from keras.layers import Dense
 import numpy as np
 
 filename = "data/datasets/" + "test_data_1_modified.csv"
-
+ 
 # load the dataset
 dataset = loadtxt(filename, delimiter=',', skiprows=1)
 # split into input (X) and output (y) variables
