@@ -7,7 +7,7 @@ import datetime as dt
 import scipy
 
 filename = "data/datasets/" + "test_data_2.csv"
-outfilename = "data/datasets/" + "test_data_2_modified.csv"
+outfilename = "data/datasets/" + "test_data_2_modified_2.csv"
 
 data = pd.read_csv(filename)
 print(data)
@@ -71,7 +71,7 @@ surface_variables_to_drop = ['angle_of_sub_gridscale_orography',
 pressure_levels_to_drop = ['975', '950', '875', '825', '800', '775', '750', '650', '600', '550', '450', '350', '225']
 
 # drop unwanted columns to decrease dataset size
-data = data.drop(columns = surface_variables_to_drop)
+#data = data.drop(columns = surface_variables_to_drop)
 pressure_columns_to_drop = []
 
 for pl in pressure_levels_to_drop:
@@ -85,11 +85,14 @@ for pl in pressure_levels:
 pressure_columns_to_drop = list(dict.fromkeys(pressure_columns_to_drop))
 
 
-data = data.drop(columns = pressure_columns_to_drop)
+#data = data.drop(columns = pressure_columns_to_drop)
 
 
 
 data = data[data['elevation'].notna()] #remove stations with no elevation data
 print(data)
+
+
+
 
 data.to_csv(outfilename)
