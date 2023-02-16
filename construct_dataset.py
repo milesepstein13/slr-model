@@ -79,11 +79,11 @@ def checkValidWindow(window_start, window_end, pc_data, sd_data):
 
     # invalid if in a month that we don't have weather data for
     if (window_start.month > 5 and window_start.month < 10):
-        return [False, 0]
+        return [False, 0, 0, 0]
     if (window_start.month > 5 and window_start.year >= 2022):
-        return [False, 0]
+        return [False, 0, 0, 0]
     if (window_start.month == 5 and window_start.day == 31 and window_start.hour == 18):
-        return [False, 0]
+        return [False, 0, 0, 0]
     try:
 
         pc_start = pc_data.loc[window_start]["Value (mm)"]
@@ -91,20 +91,19 @@ def checkValidWindow(window_start, window_end, pc_data, sd_data):
         sd_start = sd_data.loc[window_start]["Value (cm)"]
         sd_end = sd_data.loc[window_end]["Value (cm)"]
         pc_increase = pc_end - pc_start
-        sd_increase = sd_start - sd_end
+        sd_increase = sd_end - sd_start
         if (pc_increase == 0 or sd_increase == 0):
-            return [False, 0]
+            return [False, 0, 0, 0]
 
         SLR = sd_increase/pc_increase * 10
 
-        # TODO check raw data for outliers
-        if (pc_increase < 1 or sd_increase < 1 or SLR < 2 or SLR > 50 or sd_increase > 50 or pc_increase > 50):
-            return [False, 0]
+        if (pc_increase < 5 or sd_increase < 5 or SLR < 2 or SLR > 50 or sd_increase > 50 or pc_increase > 50):
+            return [False, 0, 0, 0]
         #print("precip (mm): " + str(pc_increase))
         #print("snow(cm): " + str(sd_increase))
-        return [True, SLR]
+        return [True, SLR, pc_increase, sd_increase]
     except: # no data exists in the given window, so there is no valid data to return
-        return [False, 0]
+        return [False, 0, 0, 0]
 
 # returns the year number of the file containing data at start_time
 def getFileYear(start_time):
@@ -167,7 +166,7 @@ columns = []
 for variable in pressure_level_variables:
     for pl in pressure_levels:
         columns = columns + [variable + '_' + pl]
-columns = columns + surface_variables + ['elevation', 'latitude', 'longitude', 'SLR']
+columns = columns + surface_variables + ['elevation', 'latitude', 'longitude', 'pc_increase', 'sd_increase', 'SLR', 'starttime', 'endtime']
 #print(columns)
 df = pd.DataFrame(columns=columns)
 row_num = 0
@@ -220,18 +219,18 @@ for i, station in stations.iterrows():
         pc_data = pc_data.set_index('Timestamp (UTC)')
         sd_data = sd_data.set_index('Timestamp (UTC)')
 
-        fileyear = getFileYear(start_time)
+        fileyear = getFileYear(window_start)
 
         # open weather files
-        weather_upper = openWeatherUpper(lat, lon, start_time)
-        weather_land = openWeatherLand(lat, lon, start_time)
+        weather_upper = openWeatherUpper(lat, lon, window_start)
+        weather_land = openWeatherLand(lat, lon, window_start)
 
         valid_windows = 0
         
         # loop through all possible time windows
         while (window_end <= end_time):            
             
-            [valid, SLR] = checkValidWindow(window_start, window_end, pc_data, sd_data)
+            [valid, SLR, pc_increase, sd_increase] = checkValidWindow(window_start, window_end, pc_data, sd_data)
             if valid: # there is an SLR recorded from this time window
                 
                 #print("Valid window! Starting at " + str(window_start))
@@ -252,6 +251,10 @@ for i, station in stations.iterrows():
                 df.at[row_num, 'elevation'] = elevation
                 df.at[row_num, 'latitude'] = lat
                 df.at[row_num, 'longitude'] = lon
+                df.at[row_num, 'pc_increase'] = pc_increase
+                df.at[row_num, 'sd_increase'] = sd_increase
+                df.at[row_num, 'starttime'] = window_start
+                df.at[row_num, 'endtime'] = window_end
                 
                 # 
                 # pressure level 
@@ -270,9 +273,9 @@ for i, station in stations.iterrows():
                 # TODO: check how it's interpolating-- look at what the options are there-- do bicubic?
                 v1 = weather_upper.sel(time = window_start).interp(latitude = lat, longitude = lon, method='slinear')
                 v2 = weather_upper.sel(time = window_start + delta/2).interp(latitude = lat, longitude = lon, method='slinear')
-                #v3 = weather_upper.sel(time = window_end).interp(latitude = lat, longitude = lon, method='slinear')
-                #v = (v1 + 2*v2 + v3)/4
-                v = (v1 + v2)/2
+                v3 = weather_upper.sel(time = window_end).interp(latitude = lat, longitude = lon, method='slinear')
+                v = (v1 + 2*v2 + v3)/4
+                #v = (v1 + v2)/2
                 v = v.to_array().values.ravel()
                 df.loc[row_num, 'specific_rain_water_content_1000':'vertical_velocity_200'] = v
                   
@@ -289,18 +292,18 @@ for i, station in stations.iterrows():
 
                 v1 = weather_land.sel(time = window_start).interp(latitude = lat, longitude = lon, method='slinear')
                 v2 = weather_land.sel(time = window_start+delta/2).interp(latitude = lat, longitude = lon, method='slinear')
-                #v3 = weather_land.sel(time = window_end).interp(latitude = lat, longitude = lon, method='slinear')
-                #v = (v1 + 2*v2 + v3)/4
-                v = (v1 + v2)/2
+                v3 = weather_land.sel(time = window_end).interp(latitude = lat, longitude = lon, method='slinear')
+                v = (v1 + 2*v2 + v3)/4
+                #v = (v1 + v2)/2
                 v = v.to_array().values.ravel()
                 df.loc[row_num, 'angle_of_sub_gridscale_orography':'total_precipitation'] = v
                 
                 row_num += 1
                 #print('row ' + str(row_num) + ' added')
                 if (row_num%100 == 0):
-                    df.to_csv('data/test_data.csv')  
+                    df.to_csv('data/test_data_linear.csv')  
                     ds = xr.Dataset.from_dataframe(df)
-                    ds.to_netcdf('data/test_data.nc')  
+                    ds.to_netcdf('data/test_data_linear.nc')  
                     print(str(row_num) + " rows saved, saved as files")
 
             

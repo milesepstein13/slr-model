@@ -6,48 +6,85 @@ from numpy import loadtxt
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
+from keras.layers import Normalization
+from keras.layers import LeakyReLU
+from keras import optimizers
+from keras import regularizers
 import numpy as np
 
-filename = "data/datasets/" + "test_data_2_modified.csv"
+filename = "data/datasets/" + "test_data_2_modified_2_geop.csv"
  
 # load the dataset
 dataset = loadtxt(filename, delimiter=',', skiprows=1)
 # split into input (X) and output (y) variables
+
+X = dataset[:, (-2, -5, -21)]
 X = dataset[:, :-1]
-X = X[:, 52:55]
+
+d = X.shape[1]
+#X = X[:, d-5:]
 y = dataset[:,-1]
-print(X.shape)
-#print(y)
+
+print(X)
+print(y)
+opt = keras.optimizers.Adam()
+
 # define the keras model
 model = Sequential()
-model.add(Dropout(0.4))
-model.add(Dense(50, input_shape=(X.shape[1],), activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dropout(0.4))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dropout(0.4))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dropout(0.4))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(2, activation='linear'))
+model.add(Normalization())
+model.add(Dense(40, 
+                input_shape=(X.shape[1],),  
+                activation=LeakyReLU(alpha = .1)))
+
+model.add(Dense(40, 
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(40, 
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(35, 
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(30, 
+                activation=LeakyReLU(alpha = .1)))
+
+model.add(Dense(40, 
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(40, 
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(35, 
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(30, 
+                activation=LeakyReLU(alpha = .1)))
+#model.add(Dropout(0.4))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dropout(0.4))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dropout(0.4))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dropout(0.4))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dense(50, activation='relu'))
+#model.add(Dense(50, activation='relu'))
+model.add(Dense(1, activation='linear'))
 
 # compile the keras model
-model.compile(loss='mean_squared_error', optimizer='adam', metrics=['mean_squared_error'])
+model.compile(loss='huber', optimizer=opt, metrics=['mean_squared_error'])
 # fit the keras model on the dataset
-model.fit(X, y, epochs=10, batch_size=50)
+model.fit(X, y, epochs=20, batch_size=10, validation_split = 0)
 # evaluate the keras model
-output, accuracy = model.evaluate(X, y)
+na, accuracy = model.evaluate(X, y)
 
-print('Accuracy: %.2f' % accuracy)
+#print('Accuracy: %.2f' % accuracy)
 
-print(np.sqrt(accuracy))
+output = model.predict(X)
+#print(np.sqrt(accuracy))
+print("y")
+print(y)
+print("output")
+print(output)
 
 # TODO: have it automatically write to a records file recording parameters and performance for each thing
