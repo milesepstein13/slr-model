@@ -96,7 +96,8 @@ def checkValidWindow(window_start, window_end, pc_data, sd_data):
             return [False, 0, 0, 0]
 
         SLR = sd_increase/pc_increase * 10
-
+        #TODO: Also filter out negative pc start
+        #TODO: lower cutoff and can filter later
         if (pc_increase < 5 or sd_increase < 5 or SLR < 2 or SLR > 50 or sd_increase > 50 or pc_increase > 50):
             return [False, 0, 0, 0]
         #print("precip (mm): " + str(pc_increase))
