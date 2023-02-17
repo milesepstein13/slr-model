@@ -6,8 +6,8 @@ import xarray as xr
 import datetime as dt
 import scipy
 
-filename = "data/datasets/" + "test_data_2.csv"
-outfilename = "data/datasets/" + "test_data_2_modified_2.csv"
+filename = "data/datasets/" + "test_data_3.csv"
+outfilename = "data/datasets/" + "test_data_3_modified.csv"
 
 data = pd.read_csv(filename)
 print(data)
@@ -86,10 +86,12 @@ pressure_columns_to_drop = list(dict.fromkeys(pressure_columns_to_drop))
 
 
 #data = data.drop(columns = pressure_columns_to_drop)
+data = data.drop(columns = ['starttime', 'endtime'])
 
 
 
 data = data[data['elevation'].notna()] #remove stations with no elevation data
+data = data[data['snowfall'] != 0] #remove examples with no reanalysis snowfall
 print(data)
 
 

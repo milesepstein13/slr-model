@@ -7,8 +7,8 @@ import xarray as xr
 import datetime as dt
 import scipy
 
-filename = "data/datasets/" + "test_data_2_modified_2.csv"
-outfilename = "data/datasets/" + "test_data_2_modified_2_geop.csv"
+filename = "data/datasets/" + "test_data_3_modified.csv"
+outfilename = "data/datasets/" + "test_data_3_modified.csv"
 
 data = pd.read_csv(filename)
 
@@ -16,7 +16,7 @@ geopotentials = xr.open_dataset('geopotentials.nc')
 
 print(data.shape[0])
 
-data.insert(data.shape[1]-1, "geopotential", np.zeros(data.shape[0]))
+data.insert(data.shape[1]-3, "geopotential", np.zeros(data.shape[0]))
 
 lat = data.loc[0, 'latitude']
 lon = data.loc[0, 'longitude']
