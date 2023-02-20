@@ -6,8 +6,8 @@ import xarray as xr
 import datetime as dt
 import scipy
 
-filename = "data/datasets/" + "test_data_3.csv"
-outfilename = "data/datasets/" + "test_data_3_modified.csv"
+filename = "data/datasets/" + "test_data_4.csv"
+outfilename = "data/datasets/" + "test_data_4_modified.csv"
 
 data = pd.read_csv(filename)
 print(data)
@@ -92,6 +92,9 @@ data = data.drop(columns = ['starttime', 'endtime'])
 
 data = data[data['elevation'].notna()] #remove stations with no elevation data
 data = data[data['snowfall'] != 0] #remove examples with no reanalysis snowfall
+#remove examples with PC or SD values below desired
+data = data[data['pc_increase'] > 3]
+data = data[data['sd_increase'] > 3]
 print(data)
 
 

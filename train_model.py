@@ -11,8 +11,9 @@ from keras.layers import LeakyReLU
 from keras import optimizers
 from keras import regularizers
 import numpy as np
+import matplotlib.pyplot as plt
 
-filename = "data/datasets/" + "test_data_3_modified.csv"
+filename = "data/datasets/" + "test_data_4_modified.csv"
  
 # load the dataset
 dataset = loadtxt(filename, delimiter=',', skiprows=1)
@@ -32,17 +33,73 @@ opt = keras.optimizers.Adam()
 # define the keras model
 model = Sequential()
 model.add(Normalization())
-model.add(Dense(30, 
+model.add(Dense(100, 
                 input_shape=(X.shape[1],),  
                 activation=LeakyReLU(alpha = .1)))
-model.add(Dense(30,  
+model.add(Dense(100,  
                 activation=LeakyReLU(alpha = .1)))
 
 
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
-model.add(Dense(50, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+model.add(Dense(100, activation='relu'))
+
 #model.add(Dense(50, activation='relu'))
 #model.add(Dense(50, activation='relu'))
 #model.add(Dense(50, activation='relu'))
@@ -68,5 +125,10 @@ print("y")
 print(y)
 print("output")
 print(output)
+plt.hist(output, bins=20)
+plt.title("Prediction Distribution")
+plt.xlabel("SLR")
+plt.savefig('predictions.png')
+plt.clf()
 
 # TODO: have it automatically write to a records file recording parameters and performance for each thing

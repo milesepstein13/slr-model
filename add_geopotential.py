@@ -7,8 +7,8 @@ import xarray as xr
 import datetime as dt
 import scipy
 
-filename = "data/datasets/" + "test_data_3_modified.csv"
-outfilename = "data/datasets/" + "test_data_3_modified.csv"
+filename = "data/datasets/" + "test_data_4.csv"
+outfilename = "data/datasets/" + "test_data_4.csv"
 
 data = pd.read_csv(filename)
 
