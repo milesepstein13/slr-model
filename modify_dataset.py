@@ -51,7 +51,6 @@ pressure_variables_to_drop = ['specific_rain_water_content',
 	'specific_snow_water_content']
 surface_variables_to_drop = ['angle_of_sub_gridscale_orography', 
     'slope_of_sub_gridscale_orography', 
-    'instantaneous_10_metre_wind gust',
     'surface_pressure',
     '100m_u_component_of_wind',
 	'100m_v_component_of_wind',
@@ -59,13 +58,10 @@ surface_variables_to_drop = ['angle_of_sub_gridscale_orography',
 	'surface_solar_radiation_downwards',
 	'forecast_albedo',
 	'snow_evaporation',
-	'mean_snow_evaporation_rate',
-	'mean_snowmelt_rate',
 	'mean_surface_downward_short_wave_radiation_flux',
 	'mean_surface_downward_long_wave_radiation_flux',
 	'mean_top_net_short_wave_radiation_flux',
-	'mean_top_net_long_wave_radiation_flux',
-    'snowfall',
+	'mean_top_net_long_wave_radiation_flux'
     ]
 
 pressure_levels_to_drop = ['975', '950', '875', '825', '800', '775', '750', '650', '600', '550', '450', '350', '225']
@@ -86,7 +82,7 @@ pressure_columns_to_drop = list(dict.fromkeys(pressure_columns_to_drop))
 
 
 #data = data.drop(columns = pressure_columns_to_drop)
-data = data.drop(columns = ['starttime', 'endtime'])
+
 
 
 
@@ -95,6 +91,8 @@ data = data[data['snowfall'] != 0] #remove examples with no reanalysis snowfall
 #remove examples with PC or SD values below desired
 data = data[data['pc_increase'] > 3]
 data = data[data['sd_increase'] > 3]
+
+data = data.drop(columns = ['starttime', 'endtime', 'Unnamed: 0', 'Unnamed: 0.1', 'pc_increase', 'sd_increase'])
 print(data)
 
 
