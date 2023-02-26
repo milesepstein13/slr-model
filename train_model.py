@@ -34,44 +34,28 @@ opt = keras.optimizers.Adam()
 # define the keras model
 model = Sequential()
 model.add(Normalization())
-model.add(Dense(1000, 
+model.add(Dense(200, 
                 input_shape=(X.shape[1],),  
                 activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000,  
+model.add(Dense(100,  
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(100,  
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(100,  
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(100,  
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(20,  
+                activation=LeakyReLU(alpha = .1)))
+model.add(Dense(5,  
                 activation=LeakyReLU(alpha = .1)))
 
-
-
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
-model.add(Dense(1000, activation=LeakyReLU(alpha = .1)))
 model.add(Dense(1, activation='linear'))
 
 # compile the keras model
 model.compile(loss='huber', optimizer=opt, metrics=['mean_squared_error'])
 # fit the keras model on the dataset
-model.fit(X, y, epochs=50, batch_size=100, validation_split = .1)
+model.fit(X, y, epochs=5000, batch_size=100, validation_split = .1)
 # evaluate the keras model
 na, accuracy = model.evaluate(X, y)
 
