@@ -12,65 +12,120 @@ from keras import optimizers
 from keras import regularizers
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from time import time
 
-filename = "data/datasets/" + "test_data_4_modified_small.csv"
- 
-# load the dataset
-dataset = loadtxt(filename, delimiter=',', skiprows=1)
 
-# split into input (X) and output (y) variables
 
-X = dataset[:, 1:-1]
-#X = dataset[:, (-1, -2)]
+batch_size_options = [100, 1000]
+layers_options = [['normalization', 200, 150, 100, 100, 100, 50, 20], ['normalization', 200,'dropout', 150, 'dropout', 100, 'dropout',100, 'dropout',100, 'dropout',50,'dropout', 20], ['normalization', 'dropout', 200, 150, 'dropout', 100, 100, 100, 'dropout', 50, 20], ['normalization', 'dropout', 200, 'dropout', 150, 'dropout', 100, 'dropout', 50], ['normalization', 'dropout', 100, 'dropout', 100, 'dropout', 100, 'dropout', 100], ['normalization', 100, 100, 100, 100]]
+reg_strengths = [0, 1e-2, 10]
 
-d = X.shape[1]
+num_models = 36
+print(num_models)
 
-y = dataset[:,-1]
+count = 0
+for batch_size in batch_size_options:
+    for layers in layers_options:
+        for regularization_strength in reg_strengths:
+            count = count+1
+            # open saved model info
+            models = pd.read_csv('models.csv')
+            model_id = models.shape[0]
+            print(str(model_id))
+            print(str(count) + ' out of ' + str(num_models))
+            dataname = "test_data_4_modified_small.csv"
+            optimizer = "adam"
+            lossfn = 'huber'
+            #layers = ['normalization', 200, 150, 100, 100, 100, 50, 20]
+            #regularization_strength = 0
+            activationfn = LeakyReLU(alpha = .1)
+            epochs=5000
+            #batch_size=100
+            dropout_rate = .2
 
-print(X)
-print(y)
-opt = keras.optimizers.Adam()
+            models.loc[model_id, 'model_id'] = model_id
+            models.loc[model_id, 'dataname'] = dataname
+            models.loc[model_id, 'optimizer'] = optimizer
+            models.loc[model_id, 'lossfn'] = lossfn
+            models.loc[model_id, 'layers'] = str(layers)
+            models.loc[model_id, 'regularization_strength'] = regularization_strength
+            models.loc[model_id, 'activationfn'] = activationfn
+            models.loc[model_id, 'epochs'] = epochs
+            models.loc[model_id, 'batch_size'] = batch_size
+            models.loc[model_id, 'dropout_rate'] = dropout_rate
 
-# define the keras model
-model = Sequential()
-model.add(Normalization())
-model.add(Dense(200, 
-                input_shape=(X.shape[1],),  
-                activation=LeakyReLU(alpha = .1)))
-model.add(Dense(100,  
-                activation=LeakyReLU(alpha = .1)))
-model.add(Dense(100,  
-                activation=LeakyReLU(alpha = .1)))
-model.add(Dense(100,  
-                activation=LeakyReLU(alpha = .1)))
-model.add(Dense(100,  
-                activation=LeakyReLU(alpha = .1)))
-model.add(Dense(20,  
-                activation=LeakyReLU(alpha = .1)))
-model.add(Dense(5,  
-                activation=LeakyReLU(alpha = .1)))
+            if (optimizer == "adam"):
+                opt = keras.optimizers.Adam()
 
-model.add(Dense(1, activation='linear'))
+            # import and organize data
+            filename = "data/datasets/" + dataname
+            dataset = loadtxt(filename, delimiter=',', skiprows=1)
+            np.random.shuffle(dataset)
+            # split into input (X) and output (y) variables
 
-# compile the keras model
-model.compile(loss='huber', optimizer=opt, metrics=['mean_squared_error'])
-# fit the keras model on the dataset
-model.fit(X, y, epochs=5000, batch_size=100, validation_split = .1)
-# evaluate the keras model
-na, accuracy = model.evaluate(X, y)
+            X = dataset[:, 1:-1]
+            #X = dataset[:, (-1, -2)]
+            d = X.shape[1]
+            n = X.shape[0]
+            y = dataset[:,-1]
 
-#print('Accuracy: %.2f' % accuracy)
+            split = int(9*n/10)
+            Xtrain = X[:split, :]
+            Xtest = X[split+ 1:, :]
 
-output = model.predict(X)
-#print(np.sqrt(accuracy))
-print("y")
-print(y)
-print("output")
-print(output)
-plt.hist(output, bins=20)
-plt.title("Prediction Distribution")
-plt.xlabel("SLR")
-plt.savefig('predictions.png')
-plt.clf()
+            ytrain = y[:split]
+            ytest = y[split + 1:]
 
-# TODO: have it automatically write to a records file recording parameters and performance for each thing
+
+            # define the keras model
+            model = Sequential()
+
+            for layer in layers:
+                if (layer == 'normalization'):
+                    model.add(Normalization())
+                elif layer == 'dropout':
+                    model.add(Dropout(dropout_rate))
+                elif regularization_strength > 0:
+                    model.add(Dense(layer, activation=activationfn, 
+                                    kernel_regularizer=regularizers.L1L2(regularization_strength, regularization_strength), 
+                                    bias_regularizer=regularizers.L1L2(regularization_strength, regularization_strength)))
+                else:
+                    model.add(Dense(layer, activation=activationfn))
+            model.add(Dense(1, activation='linear'))
+
+            # compile the keras model
+            model.compile(loss=lossfn, optimizer=opt, metrics=['mean_squared_error'])
+            # fit the keras model on the dataset
+            start = time()
+            model.fit(Xtrain, ytrain, epochs=epochs, batch_size=batch_size, verbose=1)
+            timee = time()-start
+            # evaluate the keras model
+            train_accuracy = model.evaluate(Xtrain, ytrain)
+            test_accuracy = model.evaluate(Xtest, ytest)
+
+            print('Train Accuracy:')
+            print(train_accuracy)
+            print('Test Accuracy:')
+            print(test_accuracy)
+
+            # save model info
+            output = model.predict(Xtrain)
+            print("y")
+            print(y)
+            print("output")
+            print(output)
+            plt.hist(output, bins=40)
+            plt.title("Prediction Distribution")
+            plt.xlabel("SLR")
+            plt.savefig('prediction_distributions/' + str(model_id) + '.png')
+            plt.clf()
+
+            print(models)
+
+            models.loc[model_id, 'train_accuracy'] = str(train_accuracy)
+            models.loc[model_id, 'test_accuracy'] = str(test_accuracy)
+            models.loc[model_id, 'time'] = str(timee)
+
+            models.to_csv('models.csv', index=False)
+            model.save('models/' + str(model_id))
