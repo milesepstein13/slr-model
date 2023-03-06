@@ -10,3 +10,5 @@ data/datasets/test_data_2.csv
 data/datasets/test_data_2_modified_2_geop.csv
 data/datasets/test_data_3.csv
 data/datasets/test_data_4.csv
+data/datasets/test_data_5.csv
+models/*

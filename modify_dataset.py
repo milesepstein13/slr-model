@@ -6,8 +6,8 @@ import xarray as xr
 import datetime as dt
 import scipy
 
-filename = "data/datasets/" + "test_data_4.csv"
-outfilename = "data/datasets/" + "test_data_4_modified.csv"
+filename = "data/datasets/" + "test_data_5.csv"
+outfilename = "data/datasets/" + "test_data_5_modified_small.csv"
 
 data = pd.read_csv(filename)
 print(data)
@@ -67,7 +67,7 @@ surface_variables_to_drop = ['angle_of_sub_gridscale_orography',
 pressure_levels_to_drop = ['975', '950', '875', '825', '800', '775', '750', '650', '600', '550', '450', '350', '225']
 
 # drop unwanted columns to decrease dataset size
-#data = data.drop(columns = surface_variables_to_drop)
+data = data.drop(columns = surface_variables_to_drop)
 pressure_columns_to_drop = []
 
 for pl in pressure_levels_to_drop:
@@ -81,7 +81,7 @@ for pl in pressure_levels:
 pressure_columns_to_drop = list(dict.fromkeys(pressure_columns_to_drop))
 
 
-#data = data.drop(columns = pressure_columns_to_drop)
+data = data.drop(columns = pressure_columns_to_drop)
 
 
 
@@ -92,7 +92,7 @@ data = data[data['snowfall'] != 0] #remove examples with no reanalysis snowfall
 data = data[data['pc_increase'] > 3]
 data = data[data['sd_increase'] > 3]
 
-data = data.drop(columns = ['starttime', 'endtime', 'Unnamed: 0', 'Unnamed: 0.1', 'pc_increase', 'sd_increase'])
+data = data.drop(columns = ['starttime', 'endtime', 'Unnamed: 0', 'Unnamed: 0.1', 'Unnamed: 0.2', 'pc_increase', 'sd_increase'])
 print(data)
 
 
