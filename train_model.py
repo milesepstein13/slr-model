@@ -20,11 +20,11 @@ from time import time
 batch_size_options = [1000]
 layers_options = [['normalization', 'dropout', 200,'dropout', 150, 'dropout', 100, 'dropout',100, 'dropout',100, 'dropout',50,'dropout', 20]]
 reg_strengths = [0]
-lossfns = ['mean_squared_error', 'huber']
-dropout_rates = [0, .2, .4]
-datanames = ['test_data_5_modified.csv', 'test_data_5_modified_small.csv']
+lossfns = ['huber']
+dropout_rates = [.1, .2, .3]
+datanames = ['test_data_6_modified.csv']
 
-num_models = 12
+num_models = 4
 print(num_models)
 
 count = 0
@@ -46,7 +46,7 @@ for dataname in datanames:
                         #layers = ['normalization', 200, 150, 100, 100, 100, 50, 20]
                         #regularization_strength = 0
                         activationfn = LeakyReLU(alpha = .1)
-                        epochs=20000
+                        epochs=100000
                         #batch_size=100
                         #dropout_rate = .2
 
@@ -83,6 +83,8 @@ for dataname in datanames:
                         ytrain = y[:split]
                         ytest = y[split + 1:]
 
+                        print(Xtest)
+                        print(ytest)
 
                         # define the keras model
                         model = Sequential()
@@ -124,14 +126,14 @@ for dataname in datanames:
                         print(output)
                         print(output.shape)
                         plt.hist(output, bins=40)
-                        plt.title("Prediction Distribution on Training Data")
+                        plt.title("Distribution of Predicted SLR from Training Data")
                         plt.xlabel("SLR")
                         plt.savefig('prediction_distributions/' + str(model_id) + '_train.png')
                         plt.clf()
 
                         plt.scatter(ytrain, output)
-                        plt.title("Actual vs predicted SLR by model on Training Data")
-                        plt.xlabel("Actual SLR")
+                        plt.title("Measured and Predicted SLR by Model on Training Data")
+                        plt.xlabel("Measured SLR")
                         plt.ylabel("Predicted SLR")
                         plt.savefig('prediction_distributions/' + str(model_id) + '_train_scatter.png')
                         plt.clf()
@@ -142,14 +144,14 @@ for dataname in datanames:
                         print("output")
                         print(output)
                         plt.hist(output, bins=40)
-                        plt.title("Prediction Distribution on Test Data")
+                        plt.title("Distribution of Predicted SLR from Test Data")
                         plt.xlabel("SLR")
                         plt.savefig('prediction_distributions/' + str(model_id) + '_test.png')
                         plt.clf()
 
                         plt.scatter(ytest, output)
-                        plt.title("Actual vs predicted SLR by model on Test Data")
-                        plt.xlabel("Actual SLR")
+                        plt.title("Measured and Predicted SLR by Model on Test Data")
+                        plt.xlabel("Measured SLR")
                         plt.ylabel("Predicted SLR")
                         plt.savefig('prediction_distributions/' + str(model_id) + '_test_scatter.png')
                         plt.clf()
