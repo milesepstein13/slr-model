@@ -49,7 +49,8 @@ for dataname in datanames:
     layers = ['normalization', 'dropout', 200,'dropout', 150, 'dropout', 100, 'dropout',100, 'dropout',100, 'dropout',50,'dropout', 20]
     regularization_strength = 0
     activationfn = LeakyReLU(alpha = .1)
-    epochs=20000
+    epochs=25000
+
     batch_size=1000
     dropout_rate = .2
 
@@ -79,7 +80,7 @@ for dataname in datanames:
     n = X.shape[0]
     y = dataset[:,-1]
 
-    split = int(9*n/10)
+    split = int(8*n/10)
     Xtrain = X[:split, :]
     Xtest = X[split+ 1:, :]
 
