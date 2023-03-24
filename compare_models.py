@@ -7,6 +7,10 @@ import tensorflow as tf
 from tensorflow import keras
 import scipy as sp
 from scipy import stats
+import plotly.express as px
+from metpy.calc import relative_humidity_from_specific_humidity
+from metpy.calc import dewpoint_from_relative_humidity
+from metpy.units import units
 
 np.random.seed(0)
 
@@ -36,12 +40,15 @@ for name in dataset_names:
 lookup = pd.read_csv('nws_lookup.csv')
 
 def predict_ten(dataset):
+    print("Predicting with 10")
     return 10*np.ones(dataset.shape[0])
 
 def predict_mean(dataset):
+    print("Predicting with mean")
     return np.ones(dataset.shape[0]) * np.mean(dataset.SLR)
 
 def predict_station_mean(dataset):
+    print("Predicting with Station Mean")
     # distinguishes stations by latitude (assumes two dont have same lat)
     lats = list(set(dataset.latitude))
     slrs = np.zeros(len(lats))
@@ -67,6 +74,7 @@ def tempmax(row):
     return max
 
 def predict_kuchera(dataset):
+    print("Predicting with Kuchera Method")
     ret = []
     for i in range(dataset.shape[0]):
         tmax = tempmax(dataset.iloc[i])
@@ -106,6 +114,189 @@ def predict_nws(dataset):
             ret.append(lookup.loc[j]['-21--40']/SWE_inches)
     return ret
 
+def predict_dube(dataset):
+    print("Predicting with Dube Method")
+    # note: don't have ground temperature in dataset, so not full dube
+    ret = []
+    for i in range(dataset.shape[0]):
+        data = dataset.iloc[i]
+        if tempmax(data) > 273.15:
+            ret.append(predict_dube_positive(data))
+        else:
+            ret.append(predict_dube_negative(data))
+    return ret
+
+def predict_dube_positive(data):
+    return 7
+    #TODO: implement
+
+def predict_dube_negative(data):
+    
+    (tprim, tprimp) = tprimary(data)
+    tsec = tsecondary(data, tprimp)
+    sub = sublimation(data)
+    acc = accretion(data)
+    vmax = get_vmax(data) * 1.94384 #knots
+
+    tprim = tprim - 273.15
+    tsec = tsec - 273.15
+
+    if (-5 <= tprim <= -3) and (-5 <= tsec <= -3):
+        return(adjust_needles(vmax))
+    elif (-18 <= tprim <= -12) and (-18 <= tsec <= -12):
+        return(adjust_stars(acc, sub, vmax))
+    elif (-18 <= tprim <= -12) and (tsec <= -5):
+        return(adjust_mixed_stellar(acc, sub, vmax))
+    elif (-18 <= tprim <= -12) and (tsec <= -5):
+        return(adjust_dendrites(acc, sub, vmax))
+    else:
+        return(adjust_mixed(acc))
+    
+def adjust_needles(vmax):
+    if vmax  > 25:
+        return 10
+    return 15
+
+def adjust_stars(acc, sub, vmax):
+    
+    if acc:
+        return 10
+    if sub:
+        if vmax > 15:
+            return 10
+        return 15
+    if vmax < 5:
+        return 25
+    if vmax < 15:
+        return 20
+    if vmax < 25:
+        return 15
+    return 10
+
+
+def adjust_mixed_stellar(acc, sub, vmax):
+    if acc or sub or (vmax > 25):
+        return 10
+    return 15
+
+def adjust_dendrites(acc, sub, vmax):
+    if acc:
+        return 7
+    return 10
+
+
+def adjust_mixed(acc):
+    if acc:
+        return 7
+    return 10
+
+def tprimary(data):
+    pressures = get_pressures(data)[1:]
+    rh = np.array(relative_humidities(data, pressures))
+    str1 = 'vertical_velocity_' + str(pressures[0])
+    vvs = data.loc[str1 : 'vertical_velocity_200']
+    if np.max(rh) < .8:
+        return (data['temperature_' + str(pressures[np.argmax(vvs)])], pressures[np.argmax(vvs)])
+    else:
+        vvmax = -np.inf
+        for i in range(len(vvs)):
+            if (vvs[i] > vvmax) and (rh[i] >= .8):
+                vvmax = vvs[i]
+                pmax = pressures[i]
+        return (data['temperature_' + str(pmax)], pmax)
+
+def get_pressures(data):
+    pressures = [1000, 975, 950, 925, 900, 875, 850, 825, 800, 775, 750, 700, 650, 600, 550, 500, 450, 400, 350, 300, 250, 225, 200]
+    i = 0
+    while True:
+        if pressures[i] < data.surface_pressure/100:
+            return pressures[i:]
+        else:
+            i = i+1
+
+def relative_humidities(data, pressures):
+    rh = []
+    for p in pressures:
+        tempstr = 'temperature_' + str(p)
+        shstr = 'specific_humidity_' + str(p)
+        rh.append(float(relative_humidity_from_specific_humidity(p * units.hPa, data[tempstr] * units.degK, data[shstr])))
+    return rh
+
+def dewpoints(data, pressures):
+    dp = []
+    for p in pressures:
+        tempstr = 'temperature_' + str(p)
+        shstr = 'specific_humidity_' + str(p)
+        rh = float(relative_humidity_from_specific_humidity(p * units.hPa, data[tempstr] * units.degK, data[shstr]))
+        temp = data['temperature_' + str(p)] - 273.15
+        dew = float(str(dewpoint_from_relative_humidity(data[tempstr] * units.degK, rh * units.percent)).split(' ')[0])
+        dp.append(temp - dew)
+    return dp
+
+def tsecondary(data, tprimp):
+    pressures = get_pressures(data)
+    i = np.where(np.array(pressures) == tprimp)[0][0]
+    pressures = pressures[:i]
+    rh = np.array(relative_humidities(data, pressures))
+    for i in reversed(range(len(pressures))):
+        if (rh[i] > .8) and (data['vertical_velocity_' + str(pressures[i])] < 0) and (data['temperature_' + str(pressures[i])] < 273.15):
+            return data['temperature_' + str(pressures[i])]
+    return data['temperature_' + str(tprimp)]   
+
+def accretion(data):
+    # TODO: Don't think I can check for supercooled with my dataset, using rain instead
+    pressures = get_pressures(data)
+    rh = np.array(relative_humidities(data, pressures))
+    for p, i in zip(pressures, range(len(pressures))):
+        if data['specific_rain_water_content_' + str(p)] > 0 and data['temperature_' + str(p)] > 263.15 and data['specific_rain_water_content_' + str(p)] < 273.15 and data['specific_rain_water_content_' + str(p)] > 0 and rh[i]>.95 and data['u_component_of_wind_' + str(p)] > 0 and data['v_component_of_wind_' + str(p)] > 0:
+            return True
+    return False
+
+def sublimation(data):
+    pressures = cloud_base_pressures(data)
+    if pressures == []:
+        return False
+    rhs = np.array(relative_humidities(data, pressures))
+    dews = np.array(dewpoints(data, pressures))
+    if np.min(rhs) < .8:
+        return True
+    if np.max(dews) > 3:
+        return True
+    return False
+
+def get_vmax(data):
+    pressures = cloud_base_pressures(data)
+    w1 = np.sqrt(data['10m_u_component_of_wind']**2 + data['10m_v_component_of_neutral_wind']**2)
+    w2 = np.sqrt(data['100m_u_component_of_wind']**2 + data['100m_v_component_of_wind']**2)
+    wind = max(w1, w2)
+    for p in pressures:
+        test = np.sqrt(data['u_component_of_wind_' + str(p)]**2 + data['v_component_of_wind_' + str(p)]**2)
+        if test > wind:
+            wind = test
+    return wind
+
+def cloud_base_pressures(data):
+    pressures = [1000, 975, 950, 925, 900, 875, 850, 825, 800, 775, 750, 700, 650, 600, 550, 500, 450, 400, 350, 300, 250, 225, 200]
+    i = 0
+    done = False
+    while done == False:
+        if pressures[i] < data.surface_pressure/100:
+            j = i
+            done = True
+        else:
+            i = i+1
+    while i < len(pressures):
+        p = pressures[i]
+        tempstr = 'temperature_' + str(p)
+        shstr = 'specific_humidity_' + str(p)
+        rh = float(relative_humidity_from_specific_humidity(p * units.hPa, data[tempstr] * units.degK, data[shstr]))
+        if rh > .95:
+            return pressures[j:i]
+        i = i+1
+    return pressures[j:]
+
+
+
 def predict_nn(dataset, num):
     model = keras.models.load_model("models/"+str(num))
     #print(dataset)
@@ -113,7 +304,7 @@ def predict_nn(dataset, num):
     #print(X)
     return(model.predict(X))
 
-# other prediction methods: ECCC, others from studies
+# other prediction methods: others from studies
 
 def get_station_nums(dataset):
     return stats.rankdata(dataset.latitude, method='dense')
@@ -127,14 +318,19 @@ def get_clusters(dataset):
             clusters[i] = 1
         else:
             clusters[i] = 2
-    plt.scatter(dataset.longitude, dataset.latitude, c = clusters, cmap='rainbow')
+    #TODO: put 3 regions here?
+    fig = px.scatter_geo(lat = dataset.latitude, lon = dataset.longitude, color = clusters, title = "Station Locations, Colored by Region")
+    fig.update_geos(fitbounds="locations",
+                    resolution=50,
+                    showcoastlines=True, coastlinecolor="RebeccaPurple",
+                    showland=True, landcolor="LightGreen",
+                    showocean=True, oceancolor="LightBlue",
+                    projection_type="conic equal area")
+    fig.update_geos(scope="north america",
+                    showcountries=True, countrycolor="Black",
+                    showsubunits=True, subunitcolor="Blue")
+    fig.write_image('regions.png')
 
-    plt.title("Regions")
-    plt.colorbar()
-    plt.xlabel("lon")
-    plt.ylabel("lat")
-    plt.savefig('regions.png')
-    plt.clf()
     return clusters
 
 print("Making predictions...")
@@ -144,6 +340,7 @@ predictions = pd.DataFrame().assign(recorded = validation_datasets[""].SLR,
                                     meann = predict_mean(validation_datasets[""]),
                                     station_mean = predict_station_mean(validation_datasets[""]),
                                     kuchera = predict_kuchera(validation_datasets[""]),
+                                    dube = predict_dube(validation_datasets[""]),
                                     nn_full = predict_nn(validation_datasets[""], 178),
                                     nn_small = predict_nn(validation_datasets["_small"], 179),
                                     nn_without_derived = predict_nn(validation_datasets["_without_derived"], 180),
@@ -165,6 +362,7 @@ SE = pd.DataFrame().assign(recorded = ((predictions.recorded-predictions.recorde
                             mean = ((predictions.recorded-predictions.meann)**2),
                             station_mean = ((predictions.recorded-predictions.station_mean)**2),
                             kuchera = ((predictions.recorded-predictions.kuchera)**2),
+                            dube = ((predictions.recorded-predictions.dube)**2),
                             nn_full = ((predictions.recorded-predictions.nn_full)**2),
                             nn_small = ((predictions.recorded-predictions.nn_small)**2),
                             nn_without_derived = ((predictions.recorded-predictions.nn_without_derived)**2),
@@ -183,6 +381,7 @@ AE = pd.DataFrame().assign(recorded = (np.abs(predictions.recorded-predictions.r
                             mean = (np.abs(predictions.recorded-predictions.meann)),
                             station_mean = (np.abs(predictions.recorded-predictions.station_mean)),
                             kuchera = (np.abs(predictions.recorded-predictions.kuchera)),
+                            dube = (np.abs(predictions.recorded-predictions.dube)),
                             nn_full = (np.abs(predictions.recorded-predictions.nn_full)),
                             nn_small = (np.abs(predictions.recorded-predictions.nn_small)),
                             nn_without_derived = (np.abs(predictions.recorded-predictions.nn_without_derived)),
@@ -269,16 +468,29 @@ MAE_clusters.to_csv('outputs/cluster_mae.csv')
 def make_maps(value_locations, lats, lons, errortype, short_errortype):
     for column in value_locations:
         if (column != 'recorded') and (column != 'cluster') and (column != 'count'):
-            plt.scatter(lons, lats, c = value_locations[column], s=value_locations['count'], cmap='rainbow')
+            #plt.scatter(lons, lats, c = value_locations[column], s=value_locations['count'], cmap='rainbow')
 
-            plt.title("Mean Test " + errortype + " With " + column + " Method for SLR Prediction")
-            plt.colorbar()
-            plt.xlabel("lon")
-            plt.ylabel("lat")
+            #plt.title("Mean Test " + errortype + " With " + column + " Method for SLR Prediction")
+            #plt.colorbar()
+            #plt.xlabel("lon")
+            #plt.ylabel("lat")
             
-            plt.savefig('outputs/figs/' + short_errortype + column + '.png')
-            plt.clf()
+            #plt.savefig('outputs/figs/' + short_errortype + column + '.png')
+            #plt.clf()
+            print("plotting")
 
+            fig = px.scatter_geo(lat = lats, lon = lons, color = value_locations[column], size = value_locations['count'], title = "Mean Test " + errortype + " With " + column + " Method for SLR Prediction")
+            fig.update_geos(fitbounds="locations",
+                            resolution=50,
+                            showcoastlines=True, coastlinecolor="RebeccaPurple",
+                            showland=True, landcolor="LightGreen",
+                            showocean=True, oceancolor="LightBlue",
+                            projection_type="conic equal area")
+            fig.update_geos(scope="north america",
+                            showcountries=True, countrycolor="Black",
+                            showsubunits=True, subunitcolor="Blue")
+            fig.write_image('outputs/figs/' + short_errortype + column + '.png')
+        
 
 def get_lat_lon(dataset):
     lats = np.unique(dataset.latitude)
