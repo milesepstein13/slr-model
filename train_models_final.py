@@ -71,6 +71,7 @@ for dataname in datanames:
     # import and organize data
     filename = "data/datasets/" + dataname
     dataset = loadtxt(filename, delimiter=',', skiprows=1)
+    np.random.seed(0)
     np.random.shuffle(dataset)
     # split into input (X) and output (y) variables
 

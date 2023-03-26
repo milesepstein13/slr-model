@@ -17,6 +17,7 @@ np.random.seed(0)
 # to get only validation examples from dataset
 def get_validation(dataset):
     values = dataset.values
+    np.random.seed(0)
     np.random.shuffle(values)
     #print(values.shape)
     #print(dataset.shape)
@@ -25,6 +26,7 @@ def get_validation(dataset):
     n = dataset.shape[0]
     split = int(8*n/10)
     dataset = dataset.iloc[split + 1:, :]
+    print(dataset)
     return dataset
 
 base_name = 'data/datasets/test_data_6_modified'
@@ -119,6 +121,7 @@ def predict_dube(dataset):
     # note: don't have ground temperature in dataset, so not full dube
     ret = []
     for i in range(dataset.shape[0]):
+        print('dube '+ str(i))
         data = dataset.iloc[i]
         if tempmax(data) > 273.15:
             ret.append(predict_dube_positive(data))
@@ -301,7 +304,7 @@ def predict_nn(dataset, num):
     model = keras.models.load_model("models/"+str(num))
     #print(dataset)
     X = dataset.to_numpy()[:, :-1]
-    #print(X)
+    print(X) #TODO: check if dataset is getting fucked with somewhere. I think it might be, leading to poor predictions. Try not shuffling dataset to see if any better. Then check contents at each stage
     return(model.predict(X))
 
 # other prediction methods: others from studies
@@ -310,20 +313,29 @@ def get_station_nums(dataset):
     return stats.rankdata(dataset.latitude, method='dense')
 
 def get_clusters(dataset):
-    clusters = np.zeros(len(dataset.latitude))
-    for i in range(len(dataset.latitude)):
-        lat = dataset.latitude.iloc[i]
-        lon = dataset.longitude.iloc[i]
-        if (lon < -127 or (lon < -122.5 and lat < 54.5) or (lon < -120 and lat < 51)):
+    
+    station_lats = pd.unique(dataset.latitude)
+    station_lons = pd.unique(dataset.longitude)
+    clusters = np.zeros(len(station_lats))
+    for i in range(len(station_lats)):
+        lat = station_lats[i]
+        lon = station_lons[i]
+        if (lon < -122.5 and lat < 54):
             clusters[i] = 1
+        elif (lon < -122.5 ):
+            clusters[i] = 3
         else:
             clusters[i] = 2
-    #TODO: put 3 regions here?
-    fig = px.scatter_geo(lat = dataset.latitude, lon = dataset.longitude, color = clusters, title = "Station Locations, Colored by Region")
+
+    counts =  np.zeros(len(station_lats))
+    for i in range(len(station_lats)):
+        counts[i] = dataset.latitude.to_list().count(station_lats[i])
+
+    fig = px.scatter_geo(lat =station_lats, lon = station_lons, color = clusters.astype(str), size = counts, title = "Station Locations, Colored by Region, Size Proportional to Number of Examples")
     fig.update_geos(fitbounds="locations",
                     resolution=50,
                     showcoastlines=True, coastlinecolor="RebeccaPurple",
-                    showland=True, landcolor="LightGreen",
+                    showland=True, landcolor="White",
                     showocean=True, oceancolor="LightBlue",
                     projection_type="conic equal area")
     fig.update_geos(scope="north america",
@@ -331,7 +343,19 @@ def get_clusters(dataset):
                     showsubunits=True, subunitcolor="Blue")
     fig.write_image('regions.png')
 
-    return clusters
+    ret = np.zeros(len(dataset.latitude))
+    print(dataset.latitude)
+    for i in range(len(dataset.latitude)):
+        lat = dataset.latitude.iloc[i]
+        lon = dataset.longitude.iloc[i]
+        if (lon < -122.5 and lat < 54):
+            ret[i] = 1
+        elif (lon < -122.5 ):
+            ret[i] = 3
+        else:
+            ret[i] = 2
+    return ret
+
 
 print("Making predictions...")
 
@@ -341,16 +365,16 @@ predictions = pd.DataFrame().assign(recorded = validation_datasets[""].SLR,
                                     station_mean = predict_station_mean(validation_datasets[""]),
                                     kuchera = predict_kuchera(validation_datasets[""]),
                                     dube = predict_dube(validation_datasets[""]),
-                                    nn_full = predict_nn(validation_datasets[""], 178),
-                                    nn_small = predict_nn(validation_datasets["_small"], 179),
-                                    nn_without_derived = predict_nn(validation_datasets["_without_derived"], 180),
-                                    nn_without_meta = predict_nn(validation_datasets["_without_meta"], 181),
-                                    nn_without_radiation = predict_nn(validation_datasets["_without_radiation"], 182),
-                                    nn_without_surface = predict_nn(validation_datasets["_without_surface"], 183),
-                                    nn_without_temperature = predict_nn(validation_datasets["_without_temperature"], 184),
-                                    nn_without_upper = predict_nn(validation_datasets["_without_upper"], 185),
-                                    nn_without_water = predict_nn(validation_datasets["_without_water"], 186),
-                                    nn_without_wind = predict_nn(validation_datasets["_without_wind"], 187),
+                                    nn_full = predict_nn(validation_datasets[""], 188), #TODO start at 188 once models retrained
+                                    nn_small = predict_nn(validation_datasets["_small"], 189),
+                                    nn_without_derived = predict_nn(validation_datasets["_without_derived"], 190),
+                                    nn_without_meta = predict_nn(validation_datasets["_without_meta"], 191),
+                                    nn_without_radiation = predict_nn(validation_datasets["_without_radiation"], 192),
+                                    nn_without_surface = predict_nn(validation_datasets["_without_surface"], 193),
+                                    nn_without_temperature = predict_nn(validation_datasets["_without_temperature"], 194),
+                                    nn_without_upper = predict_nn(validation_datasets["_without_upper"], 195),
+                                    nn_without_water = predict_nn(validation_datasets["_without_water"], 196),
+                                    nn_without_wind = predict_nn(validation_datasets["_without_wind"], 197),
                                     station = get_station_nums(validation_datasets[""]),
                                     cluster = get_clusters(validation_datasets[""]))
 
@@ -478,12 +502,18 @@ def make_maps(value_locations, lats, lons, errortype, short_errortype):
             #plt.savefig('outputs/figs/' + short_errortype + column + '.png')
             #plt.clf()
             print("plotting")
+            if short_errortype == 'mae_':
+                range = (1, 7)
+            elif short_errortype == 'mse_':
+                range = (10, 60)
+            else:
+                range = (3, 8)
 
-            fig = px.scatter_geo(lat = lats, lon = lons, color = value_locations[column], size = value_locations['count'], title = "Mean Test " + errortype + " With " + column + " Method for SLR Prediction")
+            fig = px.scatter_geo(lat = lats, lon = lons, color = value_locations[column], size = value_locations['count'], title = "Mean Test " + errortype + " With " + column + " Method for SLR Prediction", range_color=range, color_continuous_scale=px.colors.sequential.Turbo)
             fig.update_geos(fitbounds="locations",
                             resolution=50,
                             showcoastlines=True, coastlinecolor="RebeccaPurple",
-                            showland=True, landcolor="LightGreen",
+                            showland=True, landcolor="White",
                             showocean=True, oceancolor="LightBlue",
                             projection_type="conic equal area")
             fig.update_geos(scope="north america",
@@ -506,6 +536,6 @@ def get_lat_lon(dataset):
 (lats, lons) = get_lat_lon(validation_datasets[''])
 
 # do for each
-make_maps(MSE_locations, lats, lons, 'mean squared error', '_mse_')
-make_maps(RMSE_stations, lats, lons, 'root mean squared error', '_rmse_')
-make_maps(MAE_stations, lats, lons, 'mean absolute error', '_mae_')
+make_maps(MSE_locations, lats, lons, 'mean squared error', 'mse_')
+make_maps(RMSE_stations, lats, lons, 'root mean squared error', 'rmse_')
+make_maps(MAE_stations, lats, lons, 'mean absolute error', 'mae_')
