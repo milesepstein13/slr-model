@@ -10,6 +10,7 @@ from scipy import stats
 import plotly.express as px
 from metpy.calc import relative_humidity_from_specific_humidity
 from metpy.calc import dewpoint_from_relative_humidity
+from metpy.calc import relative_humidity_from_dewpoint
 from metpy.units import units
 
 np.random.seed(0)
@@ -33,7 +34,7 @@ base_name = 'data/datasets/test_data_6_modified'
 
 # load in validation datasets (each dataset contains different variables)
 print("Loading datasets")
-dataset_names = ["", "_small", "_without_derived", "_without_meta", "_without_radiation", "_without_surface", "_without_temperature", "_without_upper", "_without_water", "_without_wind"]
+dataset_names = ["", "_small", "_without_derived", "_without_meta", "_without_radiation", "_without_surface", "_without_temperature", "_without_upper", "_without_water", "_without_wind", "_surface_temperature", "surface_temp_meta", "_temp_humidity", "_temp_humidity_wind", "_temp_humidity_wind_meta"]
 validation_datasets = dict()
 for name in dataset_names:
     validation_datasets[name] = get_validation(pd.read_csv(base_name + name + '.csv'))
@@ -304,8 +305,18 @@ def predict_nn(dataset, num):
     model = keras.models.load_model("models/"+str(num))
     #print(dataset)
     X = dataset.to_numpy()[:, :-1]
-    print(X) #TODO: check if dataset is getting fucked with somewhere. I think it might be, leading to poor predictions. Try not shuffling dataset to see if any better. Then check contents at each stage
+    print(X)
     return(model.predict(X))
+
+def predict_gpt(dataset):
+    print("Predicting with Kuchera Method")
+    ret = []
+    for i in range(dataset.shape[0]):
+        RH = float(relative_humidity_from_dewpoint(dataset['2m_temperature'].iloc[i] * units.degK, dataset['2m_dewpoint_temperature'].iloc[i] * units.degK))
+        WS = np.sqrt(dataset['10m_u_component_of_wind'].iloc[i]**2 + dataset['10m_v_component_of_neutral_wind'].iloc[i]**2)
+        SLR = (dataset['2m_temperature'].iloc[i]) / (17.8 - (dataset['2m_temperature'].iloc[i]-273.15)/234.5) * (1 - 0.0003 * RH**2) * (1 + 0.00115 * WS**0.6)
+        ret.append(SLR)
+    return ret
 
 # other prediction methods: others from studies
 
@@ -348,7 +359,7 @@ def get_clusters(dataset):
     for i in range(len(dataset.latitude)):
         lat = dataset.latitude.iloc[i]
         lon = dataset.longitude.iloc[i]
-        if (lon < -122.5 and lat < 54):
+        if (lon < -122.5 and lat < 54): #TODO: set these to "Coast Range", "Rockies", and "Northern BC"
             ret[i] = 1
         elif (lon < -122.5 ):
             ret[i] = 3
@@ -365,6 +376,7 @@ predictions = pd.DataFrame().assign(recorded = validation_datasets[""].SLR,
                                     station_mean = predict_station_mean(validation_datasets[""]),
                                     kuchera = predict_kuchera(validation_datasets[""]),
                                     dube = predict_dube(validation_datasets[""]),
+                                    gpt = predict_gpt(validation_datasets[""]),
                                     nn_full = predict_nn(validation_datasets[""], 188), #TODO start at 188 once models retrained
                                     nn_small = predict_nn(validation_datasets["_small"], 189),
                                     nn_without_derived = predict_nn(validation_datasets["_without_derived"], 190),
@@ -375,6 +387,11 @@ predictions = pd.DataFrame().assign(recorded = validation_datasets[""].SLR,
                                     nn_without_upper = predict_nn(validation_datasets["_without_upper"], 195),
                                     nn_without_water = predict_nn(validation_datasets["_without_water"], 196),
                                     nn_without_wind = predict_nn(validation_datasets["_without_wind"], 197),
+                                    nn_surface_temperature = predict_nn(validation_datasets["_surface_temperature"], 198),
+                                    nn_surface_temp_meta = predict_nn(validation_datasets["_surface_temp_meta"], 199),
+                                    nn_temp_humidity = predict_nn(validation_datasets["_temp_humidity"], 200),
+                                    nn_temp_humidity_wind = predict_nn(validation_datasets["_temp_humidity_wind"], 201),
+                                    nn_temp_humidity_wind_meta = predict_nn(validation_datasets["_temp_humidity_wind_meta"], 202),
                                     station = get_station_nums(validation_datasets[""]),
                                     cluster = get_clusters(validation_datasets[""]))
 
@@ -387,6 +404,7 @@ SE = pd.DataFrame().assign(recorded = ((predictions.recorded-predictions.recorde
                             station_mean = ((predictions.recorded-predictions.station_mean)**2),
                             kuchera = ((predictions.recorded-predictions.kuchera)**2),
                             dube = ((predictions.recorded-predictions.dube)**2),
+                            gpt = ((predictions.recorded-predictions.gpt)**2),
                             nn_full = ((predictions.recorded-predictions.nn_full)**2),
                             nn_small = ((predictions.recorded-predictions.nn_small)**2),
                             nn_without_derived = ((predictions.recorded-predictions.nn_without_derived)**2),
@@ -397,6 +415,11 @@ SE = pd.DataFrame().assign(recorded = ((predictions.recorded-predictions.recorde
                             nn_without_upper = ((predictions.recorded-predictions.nn_without_upper)**2),
                             nn_without_water = ((predictions.recorded-predictions.nn_without_water)**2),
                             nn_without_wind = ((predictions.recorded-predictions.nn_without_wind)**2),
+                            nn_surface_temperature = ((predictions.recorded-predictions.nn_surface_temperature)**2),
+                            nn_surface_temp_meta = ((predictions.recorded-predictions.nn_surface_temp_meta)**2),
+                            nn_temp_humidity = ((predictions.recorded-predictions.nn_temp_humidity)**2),
+                            nn_temp_humidity_wind = ((predictions.recorded-predictions.nn_temp_humidity_wind)**2),
+                            nn_temp_humidity_wind_meta = ((predictions.recorded-predictions.nn_temp_humidity_wind_meta)**2),
                             station = predictions.station,
                             cluster = predictions.cluster)
 
@@ -406,6 +429,7 @@ AE = pd.DataFrame().assign(recorded = (np.abs(predictions.recorded-predictions.r
                             station_mean = (np.abs(predictions.recorded-predictions.station_mean)),
                             kuchera = (np.abs(predictions.recorded-predictions.kuchera)),
                             dube = (np.abs(predictions.recorded-predictions.dube)),
+                            gpt = (np.abs(predictions.recorded-predictions.gpt)),
                             nn_full = (np.abs(predictions.recorded-predictions.nn_full)),
                             nn_small = (np.abs(predictions.recorded-predictions.nn_small)),
                             nn_without_derived = (np.abs(predictions.recorded-predictions.nn_without_derived)),
@@ -416,6 +440,11 @@ AE = pd.DataFrame().assign(recorded = (np.abs(predictions.recorded-predictions.r
                             nn_without_upper = (np.abs(predictions.recorded-predictions.nn_without_upper)),
                             nn_without_water = (np.abs(predictions.recorded-predictions.nn_without_water)),
                             nn_without_wind = (np.abs(predictions.recorded-predictions.nn_without_wind)),
+                            nn_surface_temperature = (np.abs(predictions.recorded-predictions.nn_surface_temperature)),
+                            nn_surface_temp_meta = (np.abs(predictions.recorded-predictions.nn_surface_temp_meta)),
+                            nn_temp_humidity = (np.abs(predictions.recorded-predictions.nn_temp_humidity)),
+                            nn_temp_humidity_wind = (np.abs(predictions.recorded-predictions.nn_temp_humidity_wind)),
+                            nn_temp_humidity_wind_meta = (np.abs(predictions.recorded-predictions.nn_temp_humidity_wind_meta)),
                             station = predictions.station,
                             cluster = predictions.cluster)
 print(SE)
@@ -539,3 +568,4 @@ def get_lat_lon(dataset):
 make_maps(MSE_locations, lats, lons, 'mean squared error', 'mse_')
 make_maps(RMSE_stations, lats, lons, 'root mean squared error', 'rmse_')
 make_maps(MAE_stations, lats, lons, 'mean absolute error', 'mae_')
+

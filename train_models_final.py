@@ -21,16 +21,11 @@ from time import time
 np.random.seed(0)
 
 
-datanames = ['test_data_6_modified.csv', 
-             'test_data_6_modified_small.csv', 
-             'test_data_6_modified_without_derived.csv', 
-             'test_data_6_modified_without_meta.csv', 
-             'test_data_6_modified_without_radiation.csv', 
-             'test_data_6_modified_without_surface.csv', 
-             'test_data_6_modified_without_temperature.csv', 
-             'test_data_6_modified_without_upper.csv', 
-             'test_data_6_modified_without_water.csv', 
-             'test_data_6_modified_without_wind.csv']
+datanames = ['test_data_6_modified_surface_temperature.csv', 
+             'test_data_6_modified_surface_temp_meta.csv', 
+             'test_data_6_modified_temp_humidity.csv', 
+             'test_data_6_modified_temp_humidity_wind.csv', 
+             'test_data_6_modified_temp_humidity_wind_meta.csv']
 
 num_models = len(datanames)
 print(num_models)
