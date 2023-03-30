@@ -3,6 +3,29 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import plotly.express as px
 
+methoddict = {'kuchera': 'Kuchera Method',
+                  'dube': "Dube Method",
+                  'gpt': 'ChatGPT Method',
+                  'mean': 'Predicting Overall Training Mean',
+                  'station_mean': 'Predicting Station Training Mean',
+                  'ten': 'Predicting Ten',
+                  'nn_full': 'Neural Network Trained on Full Dataset',
+                  'nn_small': 'Neural Network Trained on Thinned Dataset',
+                  'nn_without_derived': 'Neural Network Trained on Dataset Without Derived Variables',
+                  'nn_without_meta': 'Neural Network Trained on Dataset Without Metadata',
+                  'nn_without_radiation': 'Neural Network Trained on Dataset Without Radiation',
+                  'nn_without_surface': 'Neural Network Trained on Dataset Without Surface Variables',
+                  'nn_without_temperature': 'Neural Network Trained on Dataset Without Temperatures',
+                  'nn_without_upper': 'Neural Network Trained on Dataset Without Upper-Air Variables',
+                  'nn_without_water': 'Neural Network Trained on Dataset Without Atmospheric Water Content',
+                  'nn_without_wind': 'Neural Network Trained on Dataset Without Wind',
+                  'nn_surface_temperature': 'Neural Network Trained on Dataset with only Surface Temperatures',
+                  'nn_surface_temp_meta': 'Neural Network Trained on Dataset with only Surface Temperatures and Metadata',
+                  'nn_temp_humidity': 'Neural Network Trained on Dataset with only Temperatues and Humidities',
+                  'nn_temp_humidity_wind': 'Neural Network Trained on Dataset with only Temperatures, Humidities, and Wind',
+                  'nn_temp_humidity_wind_meta': 'Neural Network Trained on Dataset with only Temperatures, Humidities, Wind, and Metadata'
+                  }
+
 def get_validation(dataset):
     values = dataset.values
     np.random.seed(0)
@@ -34,12 +57,15 @@ MAE_stations = pd.read_csv('outputs/station_mae.csv')
 MAE_clusters = pd.read_csv('outputs/cluster_mae.csv')
 
 
-MAE = MAE.iloc[:-2, :]
-fig = MAE.plot.bar()
+MAE = MAE.iloc[1:-2, :]
+print(MAE)
+fig = MAE.plot.bar(legend = False, title = "Mean Absolute Test Error in SLR with Different Prediction Methods")
+
 fig.figure.savefig('outputs/figs/mae.png')
 
-RMSE = RMSE.iloc[:-2, :]
-fig = RMSE.plot.bar()
+RMSE = RMSE.iloc[1:-2, :]
+fig = RMSE.plot.bar(legend = False, title = "Root Mean Square Test Error in SLR with Different Prediction Methods")
+
 fig.figure.savefig('outputs/figs/rmse.png')
 
 
@@ -98,7 +124,7 @@ def make_maps(value_locations, lats, lons, errortype, short_errortype):
                 range = (3, 8)
 
             print(column)
-            fig = px.scatter_geo(lat = lats, lon = lons, color = value_locations[column], size = value_locations['count'], title = "Test " + errortype + " With " + methoddict[column] + " for SLR Prediction", range_color=range, color_continuous_scale=px.colors.sequential.Turbo)
+            fig = px.scatter_geo(lat = lats, lon = lons, color = value_locations[column], size = value_locations['count'], range_color=range, color_continuous_scale=px.colors.sequential.Turbo)
             fig.update_geos(fitbounds="locations",
                             resolution=50,
                             showcoastlines=True, coastlinecolor="RebeccaPurple",
@@ -108,6 +134,13 @@ def make_maps(value_locations, lats, lons, errortype, short_errortype):
             fig.update_geos(scope="north america",
                             showcountries=True, countrycolor="Black",
                             showsubunits=True, subunitcolor="Blue")
+            fig.update_layout(
+                coloraxis_colorbar=dict(
+                    title=errortype,
+                    len = .8
+                )
+            )
+            # no description in image, just make caption manually
             fig.write_image('outputs/figs/' + short_errortype + column + '.png')
         
 

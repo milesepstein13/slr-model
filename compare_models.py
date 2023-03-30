@@ -34,7 +34,7 @@ base_name = 'data/datasets/test_data_6_modified'
 
 # load in validation datasets (each dataset contains different variables)
 print("Loading datasets")
-dataset_names = ["", "_small", "_without_derived", "_without_meta", "_without_radiation", "_without_surface", "_without_temperature", "_without_upper", "_without_water", "_without_wind", "_surface_temperature", "surface_temp_meta", "_temp_humidity", "_temp_humidity_wind", "_temp_humidity_wind_meta"]
+dataset_names = ["", "_small", "_without_derived", "_without_meta", "_without_radiation", "_without_surface", "_without_temperature", "_without_upper", "_without_water", "_without_wind", "_surface_temperature", "_surface_temp_meta", "_temp_humidity", "_temp_humidity_wind", "_temp_humidity_wind_meta"]
 validation_datasets = dict()
 for name in dataset_names:
     validation_datasets[name] = get_validation(pd.read_csv(base_name + name + '.csv'))
@@ -327,22 +327,23 @@ def get_clusters(dataset):
     
     station_lats = pd.unique(dataset.latitude)
     station_lons = pd.unique(dataset.longitude)
-    clusters = np.zeros(len(station_lats))
+    clusters = np.array([])
     for i in range(len(station_lats)):
         lat = station_lats[i]
         lon = station_lons[i]
         if (lon < -122.5 and lat < 54):
-            clusters[i] = 1
+            clusters = np.append(clusters, ['Coast Range'])
         elif (lon < -122.5 ):
-            clusters[i] = 3
+            clusters = np.append(clusters, ['Rockies'])
         else:
-            clusters[i] = 2
+            clusters = np.append(clusters, ['Northern BC'])
 
     counts =  np.zeros(len(station_lats))
     for i in range(len(station_lats)):
         counts[i] = dataset.latitude.to_list().count(station_lats[i])
 
-    fig = px.scatter_geo(lat =station_lats, lon = station_lons, color = clusters.astype(str), size = counts, title = "Station Locations, Colored by Region, Size Proportional to Number of Examples")
+    fig = px.scatter_geo(lat =station_lats, lon = station_lons, color = clusters, size = counts, title = "Station Locations, Colored by Region, Size Proportional to Number of Examples")
+    fig.update_layout(coloraxis_colorbar_title_text = 'Region')
     fig.update_geos(fitbounds="locations",
                     resolution=50,
                     showcoastlines=True, coastlinecolor="RebeccaPurple",
@@ -354,17 +355,17 @@ def get_clusters(dataset):
                     showsubunits=True, subunitcolor="Blue")
     fig.write_image('regions.png')
 
-    ret = np.zeros(len(dataset.latitude))
-    print(dataset.latitude)
+    ret = np.array([])
     for i in range(len(dataset.latitude)):
         lat = dataset.latitude.iloc[i]
         lon = dataset.longitude.iloc[i]
-        if (lon < -122.5 and lat < 54): #TODO: set these to "Coast Range", "Rockies", and "Northern BC"
-            ret[i] = 1
+        if (lon < -122.5 and lat < 54):
+            ret = np.append(ret, ['Coast Range'])
         elif (lon < -122.5 ):
-            ret[i] = 3
+            ret = np.append(ret, ['Northern BC'])
         else:
-            ret[i] = 2
+            ret = np.append(ret, ['Rockies'])
+    print("made stations figure")
     return ret
 
 
@@ -377,7 +378,7 @@ predictions = pd.DataFrame().assign(recorded = validation_datasets[""].SLR,
                                     kuchera = predict_kuchera(validation_datasets[""]),
                                     dube = predict_dube(validation_datasets[""]),
                                     gpt = predict_gpt(validation_datasets[""]),
-                                    nn_full = predict_nn(validation_datasets[""], 188), #TODO start at 188 once models retrained
+                                    nn_full = predict_nn(validation_datasets[""], 188),
                                     nn_small = predict_nn(validation_datasets["_small"], 189),
                                     nn_without_derived = predict_nn(validation_datasets["_without_derived"], 190),
                                     nn_without_meta = predict_nn(validation_datasets["_without_meta"], 191),

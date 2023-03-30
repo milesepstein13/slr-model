@@ -60,7 +60,7 @@ surface_variables = ['angle_of_sub_gridscale_orography',
 
 surface_variables_shortnames = ['anor', 'slor', 'i10fg', 'u10', 'v10n', 'sp', 't2m', 'd2m', 'u100', 'v100', 'ptype', 'ssrd', 'fal', 'es', 'mser', 'msmr', 'msdwswrf', 'msdwlwrf', 'mtnswrf', 'mtnlwrf', 'sf', 'tp']
 
-# TODO: consider how high up to go
+
 pressure_levels = ['1000', '975', '950', '925', '900', '875', '850', '825', '800', '775', '750', '700', '650', '600', '550', '500', '450', '400', '350', '300', '250', '225', '200']
 
 pc_filestart = "DataSetExport-PC.Working@"

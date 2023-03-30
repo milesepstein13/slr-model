@@ -10,11 +10,15 @@ nn_full,5.8886295013245435
 nn_small,5.8487820856659525
 nn_without_derived,5.858195603359603
 nn_without_meta,5.901909560308798
-nn_without_radiation,5.841108833406652
+nn_without_radiation,5.8411088335436645
 nn_without_surface,5.821136446485308
 nn_without_temperature,5.8915989847123775
 nn_without_upper,5.886431139432358
 nn_without_water,5.8953145845845
 nn_without_wind,5.930891425992764
+nn_surface_temperature,5.974149292581262
+nn_surface_temp_meta,5.929268374191138
+nn_temp_humidity,5.859082500543553
+nn_temp_humidity_wind,5.799384862707856
+nn_temp_humidity_wind_meta,5.809364438103346
 station,5.584308025532887
-cluster,1.361941159129216
