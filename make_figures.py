@@ -59,13 +59,17 @@ MAE_clusters = pd.read_csv('outputs/cluster_mae.csv')
 
 MAE = MAE.iloc[1:-2, :]
 print(MAE)
-fig = MAE.plot.bar(legend = False, title = "Mean Absolute Test Error in SLR with Different Prediction Methods")
+plt.rcParams.update({'font.size': 22})
 
+fig = MAE.plot.bar(legend = False, title = "Mean Absolute Test Error in SLR with Different Prediction Methods")
+fig.set_xlabel('Method Number')
+fig.set_ylabel('Mean Absolute Test Error')
 fig.figure.savefig('outputs/figs/mae.png')
 
 RMSE = RMSE.iloc[1:-2, :]
 fig = RMSE.plot.bar(legend = False, title = "Root Mean Square Test Error in SLR with Different Prediction Methods")
-
+fig.set_xlabel('Method Number')
+fig.set_ylabel('Root Mean Square Test Error')
 fig.figure.savefig('outputs/figs/rmse.png')
 
 
@@ -142,6 +146,7 @@ def make_maps(value_locations, lats, lons, errortype, short_errortype):
             )
             # no description in image, just make caption manually
             fig.write_image('outputs/figs/' + short_errortype + column + '.png')
+            
         
 
 def get_lat_lon(dataset):
@@ -161,4 +166,4 @@ def get_lat_lon(dataset):
 # do for each
 make_maps(MSE_locations, lats, lons, 'Mean Squared Error', 'mse_')
 make_maps(RMSE_stations, lats, lons, 'Root Mean Squared Error', 'rmse_')
-make_maps(MAE_stations, lats, lons, 'Mean Absolute Error', 'mae_')
+make_maps(MAE_stations, lats, lons, 'Mean<br>Absolute<br>Error', 'mae_')

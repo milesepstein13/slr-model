@@ -26,7 +26,7 @@ def get_validation(dataset):
     #print(dataset)
     n = dataset.shape[0]
     split = int(8*n/10)
-    dataset = dataset.iloc[split + 1:, :]
+    dataset = dataset.iloc[split+1:, :]
     print(dataset)
     return dataset
 
