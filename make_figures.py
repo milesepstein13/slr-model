@@ -128,7 +128,7 @@ def make_maps(value_locations, lats, lons, errortype, short_errortype):
                 range = (3, 8)
 
             print(column)
-            fig = px.scatter_geo(lat = lats, lon = lons, color = value_locations[column], size = value_locations['count'], range_color=range, color_continuous_scale=px.colors.sequential.Turbo)
+            fig = px.scatter_geo(lat = lats, lon = lons, color = value_locations[column], size = value_locations['count']/2, range_color=range, color_continuous_scale=px.colors.sequential.Turbo)
             fig.update_geos(fitbounds="locations",
                             resolution=50,
                             showcoastlines=True, coastlinecolor="RebeccaPurple",
@@ -145,7 +145,7 @@ def make_maps(value_locations, lats, lons, errortype, short_errortype):
                 )
             )
             # no description in image, just make caption manually
-            fig.write_image('outputs/figs/' + short_errortype + column + '.png')
+            fig.write_image('outputs/figs/' + short_errortype + column + '.png', scale = 5)
             
         
 

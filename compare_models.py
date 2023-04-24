@@ -334,15 +334,15 @@ def get_clusters(dataset):
         if (lon < -122.5 and lat < 54):
             clusters = np.append(clusters, ['Coast Range'])
         elif (lon < -122.5 ):
-            clusters = np.append(clusters, ['Rockies'])
-        else:
             clusters = np.append(clusters, ['Northern BC'])
+        else:
+            clusters = np.append(clusters, ['Rockies'])
 
     counts =  np.zeros(len(station_lats))
     for i in range(len(station_lats)):
         counts[i] = dataset.latitude.to_list().count(station_lats[i])
 
-    fig = px.scatter_geo(lat =station_lats, lon = station_lons, color = clusters, size = counts, title = "Station Locations, Colored by Region, Size Proportional to Number of Examples")
+    fig = px.scatter_geo(lat =station_lats, lon = station_lons, color = clusters, size = counts/2, title = "Station Locations, Colored by Region, Size Proportional to Number of Examples")
     fig.update_layout(coloraxis_colorbar_title_text = 'Region')
     fig.update_geos(fitbounds="locations",
                     resolution=50,
@@ -353,7 +353,7 @@ def get_clusters(dataset):
     fig.update_geos(scope="north america",
                     showcountries=True, countrycolor="Black",
                     showsubunits=True, subunitcolor="Blue")
-    fig.write_image('regions.png')
+    fig.write_image('regions.png', scale = 5)
 
     ret = np.array([])
     for i in range(len(dataset.latitude)):
@@ -365,6 +365,10 @@ def get_clusters(dataset):
             ret = np.append(ret, ['Northern BC'])
         else:
             ret = np.append(ret, ['Rockies'])
+
+
+    
+
     print("made stations figure")
     return ret
 
