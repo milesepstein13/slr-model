@@ -1,0 +1,72 @@
+,LCTN_ID,LCTN_NM,ELEVATION,LATITUDE,LONGITUDE,Region
+0,1A01P,Yellowhead Lake,1860.0,52.906,-118.548,Northern BC
+1,1A02P,McBride Upper,1610.0,53.306,-120.319,Northern BC
+2,1A03P,Barkerville,1470.0,53.057,-121.492,Northern BC
+3,1A05P,Longworth Upper,1740.0,53.951,-121.443,Northern BC
+5,1A14P,Hedrick Lake,1130.0,54.106,-121.0,Northern BC
+6,1A15P,Knudsen Lake,1580.0,54.303,-120.783,Northern BC
+7,1A17P,Revolution Creek,1680.0,53.784,-120.375,Northern BC
+8,1A19P,Dome Mountain,1774.0,53.627,-121.017,Northern BC
+14,1C14P,Bralorne,1382.0,50.775,-122.789,Coast Range
+16,1C20P,Boss Mountain Mine,1460.0,52.107,-120.867,Northern BC
+17,1C29P,Shovelnose Mountain,1460.0,49.856,-120.863,Northern BC
+18,1C32P,Deadman River,1460.0,51.099,-120.61,Northern BC
+21,1C41P,Yanks Peak,1670.0,52.832,-121.356,Northern BC
+22,1D06P,Tenquille Lake,1680.0,50.536,-122.93,Coast Range
+29,1D17P,Chilliwack River,1620.0,49.032,-121.712,Northern BC
+30,1D18P,Disappointment Lake,1050.0,49.555,-122.758,Coast Range
+31,1D19P,Spuzzum,1180.0,49.661,-121.661,Northern BC
+32,1E02P,Mount Cook,1570.0,52.182,-119.323,Northern BC
+33,1E08P,Azure River,1640.0,52.596,-119.723,Northern BC
+34,1E10P,Kostal Lake,1770.0,52.203,-120.017,Northern BC
+36,1E14P,Cook Creek,1280.0,52.168,-119.304,Northern BC
+37,1F03P,Park Mountain,1890.0,50.45,-118.619,Northern BC
+38,1F04P,Enderby,1950.0,50.653,-118.927,Northern BC
+40,1F06P,Celista,1500.0,51.407,-119.0,Northern BC
+50,2A35P,Fred Laing Lower,577.0,52.054,-118.586,Northern BC
+53,2B10P,Fauquier Water Treatment Plant,519.0,49.864,-118.074,Northern BC
+56,2C10P,Moyie Mountain,1835.0,49.252,-115.774,Northern BC
+58,2C21P,Fernie,988.0,49.488,-115.073,Northern BC
+60,2D07AP,Duncan Lake Dam 2,559.0,50.239,-116.971,Northern BC
+62,2D10P,Gray Creek Upper,1930.0,49.617,-116.659,Northern BC
+63,2D14P,Redfish Creek,2100.0,49.69,-117.086,Northern BC
+64,2D15P,Kaslo Airport,717.0,49.904,-116.928,Northern BC
+65,2D16P,New Denver East,653.0,49.997,-117.358,Northern BC
+66,2E07P,Grano Creek,1870.0,49.552,-118.677,Northern BC
+67,2F01AP,Trout Creek West,1420.0,49.74,-120.189,Northern BC
+68,2F05P,Mission Creek,1780.0,49.945,-118.95,Northern BC
+69,2F08P,Greyback Reservoir,1550.0,49.616,-119.423,Northern BC
+70,2F09P,Whiterocks Mountain,1800.0,50.017,-119.746,Northern BC
+71,2F10P,Silver Star Mountain,1840.0,50.371,-119.062,Northern BC
+73,2F19P,Oyama Lake,1360.0,50.116,-119.279,Northern BC
+74,2G03P,Blackwall Peak,1940.0,49.094,-120.772,Northern BC
+75,3A09P,Palisade Lake,900.0,49.454,-123.032,Coast Range
+77,3A19P,Orchid Lake,1180.0,49.536,-123.051,Coast Range
+78,3A20P,Callaghan,1017.0,50.137,-123.103,Coast Range
+79,3A22P,Nostetuko River,1500.0,51.243,-124.46,Coast Range
+80,3A24P,Mosley Creek Upper,1650.0,51.776,-124.622,Coast Range
+81,3A25P,Squamish River Upper,1360.0,50.154,-123.436,Coast Range
+82,3A28P,Tetrahedron,1420.0,49.598,-123.605,Coast Range
+83,3A29P,Loch Lomand,1070.0,49.592,-123.044,Coast Range
+85,3B23P,Jump Creek,1160.0,48.97,-124.276,Coast Range
+86,3B24P,Heather Mountain Upper,1190.0,48.944,-124.452,Coast Range
+87,3B25P,North Road Test ASWS,35.0,48.486,-123.412,Coast Range
+88,3B26P,Mount Arrowsmith,1465.0,49.207,-124.568,Coast Range
+89,3C08P,Burnt Bridge Creek,1330.0,52.481,-126.248,Coast Range
+90,4A02P,Pine Pass,1400.0,55.353,-122.637,Rockies
+91,4A03P,Ware Upper,1565.0,57.396,-125.7,Rockies
+93,4A09P,Pulpit Lake,1311.0,57.549,-126.748,Rockies
+94,4A12P,Tsaydaychi Lake,,55.416,-124.763,Rockies
+96,4A18P,Mount Sheba,1490.0,54.527,-121.804,Northern BC
+98,4A27P,Kwadacha North,1554.0,57.623,-125.073,Rockies
+100,4A30P,Aiken Lake,1050.0,56.437,-125.742,Rockies
+104,4A35P,Germansen Landing,766.0,55.786,-124.701,Rockies
+105,4A36P,Parsnip Upper,790.0,54.606,-122.138,Northern BC
+107,4B02P,Johanson Lake,1467.0,56.605,-126.194,Rockies
+109,4B15P,Lu Lake,1300.0,54.197,-126.304,Rockies
+110,4B16P,Shedin Creek,1480.0,55.862,-127.698,Rockies
+111,4B17P,Tsai Creek,1360.0,54.646,-127.674,Rockies
+112,4B18P,Cedar-Kiteen,885.0,55.152,-128.711,Rockies
+113,4C01P,Sikanni Lake,1387.0,57.264,-124.132,Rockies
+121,4D10P,Tumeka Creek,1220.0,57.239,-129.707,Rockies
+122,4D11P,Kinaskan Lake,1020.0,57.579,-130.263,Rockies
